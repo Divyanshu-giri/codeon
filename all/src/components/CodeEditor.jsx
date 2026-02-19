@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { useEditor } from '../context/EditorContext';
 
 const CodeEditor = () => {
-  const { openFiles, activeFileId, updateFileContent, findFileId } = useEditor();
+  const { openFiles, activeFileId, updateFileContent } = useEditor();
   const editorRef = useRef(null);
 
   // Find the active file object

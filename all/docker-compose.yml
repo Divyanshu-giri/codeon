@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: codeon-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: codeon
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: codeon-backend
+    ports:
+      - "5000:5000"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/codeon
+      PORT: 5000
+      NODE_ENV: development
+      CORS_ORIGIN: http://localhost:3000
+      DOCKER_SOCKET: /var/run/docker.sock
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./backend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm start
+
+  codeon-runtime:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codeon-runtime-base
+    image: codeon-runtime:latest
+
+volumes:
+  mongodb_data:
